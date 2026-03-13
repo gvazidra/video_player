@@ -36,10 +36,13 @@ class AudioPlayer:
                 clip.close()
                 print("[audio] No audio track in this video")
                 return False
-            tmp = tempfile.NamedTemporaryFile(suffix=".wav", delete=False)
+
+            tmp = tempfile.NamedTemporaryFile(suffix=".ogg", delete=False)
             tmp.close()
-            clip.audio.write_audiofile(tmp.name, logger=None)
+
+            clip.audio.write_audiofile(tmp.name, codec="libvorbis", logger=None)
             clip.close()
+
             self._wav = tmp.name
             self._pygame.mixer.music.load(self._wav)
             return True
@@ -50,11 +53,15 @@ class AudioPlayer:
     def play_from(self, frame_idx: int):
         if not self._ready or not self._wav:
             return
+
         pos = frame_idx / self._fps
         try:
-            self._pygame.mixer.music.play(start=pos)
-        except Exception:
-            pass
+            self._pygame.mixer.music.stop()
+            self._pygame.mixer.music.play()
+            if pos > 0.01:
+                self._pygame.mixer.music.set_pos(pos)
+        except Exception as exc:
+            print(f"[audio] play failed: {exc}")
 
     def pause(self):
         if self._ready:

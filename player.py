@@ -298,8 +298,15 @@ class VideoPlayer:
         threading.Thread(target=self._load_audio, args=(path,), daemon=True).start()
 
     def _load_audio(self, path: str):
-        self.audio_loaded = self.audio.load(path, self.native_fps)
-        self.audio.set_volume(self._vol_var.get() / 100.0)
+        loaded = self.audio.load(path, self.native_fps)
+        self.audio_loaded = loaded
+
+        vol = self._vol_var.get() / 100.0
+        self.audio.set_volume(vol)
+
+        if loaded and self.cap is not None and not self.paused:
+            current_frame = self.frame_idx
+            self.root.after(0, lambda: self.audio.play_from(current_frame))
 
     def _toggle_play(self):
         if self.cap is None:
