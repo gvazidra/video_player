@@ -1,0 +1,74 @@
+[15:22:26] pygame mixer initialized
+[15:22:38] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[15:22:39] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpvnvv6420.ogg
+[15:22:40] play from 0.000s
+[15:22:49] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpvnvv6420.ogg'
+[15:23:23] pygame mixer initialized
+[15:23:28] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[15:23:29] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpdwzj72i3.ogg
+[15:24:19] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpdwzj72i3.ogg'
+[15:24:34] pygame mixer initialized
+[15:24:38] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[15:24:40] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpjh13q8l_.ogg
+[15:24:40] play from 0.737s
+[15:24:52] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpjh13q8l_.ogg'
+[11:37:15] pygame mixer initialized
+[11:37:26] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[11:37:29] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpnznrvi8g.ogg
+[11:37:29] play from 1.876s
+[11:37:36] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpnznrvi8g.ogg'
+[11:37:36] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[11:37:37] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpe5xh42fo.ogg
+[11:37:37] play from 0.033s
+[11:37:47] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpe5xh42fo.ogg'
+[11:37:47] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[11:37:50] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpqddcexme.ogg
+[11:37:50] play from 1.640s
+[11:37:53] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpqddcexme.ogg'
+[11:51:54] pygame mixer initialized
+[11:52:02] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[11:52:05] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpvox9640d.ogg
+[11:52:06] play from 0.033s
+[11:52:19] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpvox9640d.ogg'
+[11:57:48] pygame mixer initialized
+[11:57:52] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[11:57:54] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmp3yreqb_j.ogg
+[11:57:56] play from 0.000s
+[11:58:14] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmp3yreqb_j.ogg'
+[11:58:14] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[11:58:15] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmppt0ss64j.ogg
+[11:58:17] play from 0.000s
+[11:58:25] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmppt0ss64j.ogg'
+[12:01:06] pygame mixer initialized
+[12:01:12] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[12:01:14] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpoev70_d3.ogg
+[12:01:15] play from 0.000s
+[12:01:24] play from 4.656s
+[12:01:46] play from 5.526s
+[12:02:10] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpoev70_d3.ogg'
+[12:04:01] pygame mixer initialized
+[12:04:06] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[12:04:08] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpw2f5mu4d.ogg
+[12:04:08] play from 0.804s
+[12:04:30] play from 2.244s
+[12:11:14] pygame mixer initialized
+[12:11:18] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[12:11:20] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpfibst2az.ogg
+[12:11:21] play from 0.000s
+[12:11:33] play from 0.000s
+[12:11:46] play from 0.000s
+[12:11:53] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpfibst2az.ogg'
+[12:11:53] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[12:11:53] video has no audio track
+[12:12:01] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[12:12:01] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmptqevewvr.ogg
+[12:12:02] play from 0.000s
+[12:12:15] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmptqevewvr.ogg'
+[12:12:15] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[12:12:16] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpfesd1kng.ogg
+[12:12:17] play from 0.000s
+[12:12:24] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpfesd1kng.ogg'
+[12:12:24] ffmpeg resolved: C:\uni3\3d\1\.venv\Lib\site-packages\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[12:12:26] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpr2qwuy39.ogg
+[12:12:27] play from 0.000s
+[12:12:52] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpr2qwuy39.ogg'

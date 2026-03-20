@@ -5,7 +5,6 @@ import tkinter as tk
 from tkinter import filedialog, ttk
 
 import cv2
-import numpy as np
 from PIL import Image, ImageTk
 
 from audio_helper import AudioPlayer
@@ -50,17 +49,21 @@ class VideoPlayer:
         self.paused = True
         self.mode = "gray"
         self.last_orig = None
-        self.last_hsv = (None, None, None)
-
-        self._stop_flag = threading.Event()
-        self._play_thread = None
-        self._dragging = False
-        self._fps_t = time.time()
-        self._fps_n = 0
-        self._cur_fps = 0.0
 
         self.audio = AudioPlayer()
         self.audio_loaded = False
+
+        self.loading = False
+        self._loading_win = None
+        self._loading_text = tk.StringVar(value="Loading...")
+        self._controls = []
+        self._status_restore = "No file loaded — click Open"
+
+        self._tick_job = None
+        self._play_clock_start = 0.0
+        self._fps_t = time.time()
+        self._fps_n = 0
+        self._cur_fps = 0.0
 
         self._build_ui()
         self._bind_keys()
@@ -138,7 +141,7 @@ class VideoPlayer:
         style.map("Pink.Horizontal.TScale", background=[("active", BG)])
 
         self._prog_var = tk.DoubleVar(value=0)
-        progress = ttk.Scale(
+        self._progress = ttk.Scale(
             progress_wrap,
             from_=0,
             to=1000,
@@ -147,9 +150,9 @@ class VideoPlayer:
             style="Pink.Horizontal.TScale",
             command=self._on_progress_move,
         )
-        progress.pack(fill=tk.X)
-        progress.bind("<ButtonPress-1>", lambda event: self._drag_start())
-        progress.bind("<ButtonRelease-1>", lambda event: self._drag_end())
+        self._progress.pack(fill=tk.X)
+        self._progress.bind("<ButtonPress-1>", lambda event: self._drag_start())
+        self._progress.bind("<ButtonRelease-1>", lambda event: self._drag_end())
 
         self._info_var = tk.StringVar(value="No file loaded")
         tk.Label(
@@ -173,10 +176,14 @@ class VideoPlayer:
         right.pack(side=tk.RIGHT)
 
         self._btn_play = self._make_button(left, "▶ Play", self._toggle_play, bg=ACC, fg="#ffffff", activebackground=ACC_HOVER)
-        self._make_button(left, "Open", self._open_file).pack(side=tk.LEFT, padx=(0, 6))
-        self._make_button(left, "◀ Frame", self._step_back).pack(side=tk.LEFT, padx=6)
+        self._btn_open = self._make_button(left, "Open", self._open_file)
+        self._btn_prev = self._make_button(left, "◀ Frame", self._step_back)
+        self._btn_next = self._make_button(left, "Frame ▶", self._step_forward)
+
+        self._btn_open.pack(side=tk.LEFT, padx=(0, 6))
+        self._btn_prev.pack(side=tk.LEFT, padx=6)
         self._btn_play.pack(side=tk.LEFT, padx=6)
-        self._make_button(left, "Frame ▶", self._step_forward).pack(side=tk.LEFT, padx=6)
+        self._btn_next.pack(side=tk.LEFT, padx=6)
 
         self._mode_btns = {}
         for mode in MODES:
@@ -187,7 +194,7 @@ class VideoPlayer:
 
         tk.Label(right, text="Volume", bg=BG, fg=TEXT_DARK, font=("Segoe UI", 9, "bold")).pack(side=tk.LEFT, padx=(0, 8))
         self._vol_var = tk.DoubleVar(value=80)
-        volume = ttk.Scale(
+        self._volume = ttk.Scale(
             right,
             from_=0,
             to=100,
@@ -197,7 +204,7 @@ class VideoPlayer:
             style="Pink.Horizontal.TScale",
             command=self._on_volume,
         )
-        volume.pack(side=tk.LEFT)
+        self._volume.pack(side=tk.LEFT)
         self.audio.set_volume(0.8)
 
         self._status_var = tk.StringVar(value="No file loaded — click Open")
@@ -211,6 +218,16 @@ class VideoPlayer:
             padx=10,
             pady=6,
         ).pack(fill=tk.X, padx=12, pady=(0, 10))
+
+        self._controls = [
+            self._btn_open,
+            self._btn_prev,
+            self._btn_play,
+            self._btn_next,
+            self._progress,
+            self._volume,
+            *self._mode_btns.values(),
+        ]
 
     def _make_button(self, parent, text, command, **kwargs):
         params = dict(
@@ -256,7 +273,85 @@ class VideoPlayer:
         for key, mode in (("1", "gray"), ("2", "gaussian"), ("3", "median"), ("4", "hsv")):
             self.root.bind(key, lambda event, current=mode: self._set_mode(current))
 
+    def _set_widget_enabled(self, widget, enabled: bool):
+        state = tk.NORMAL if enabled else tk.DISABLED
+        try:
+            widget.configure(state=state)
+            return
+        except Exception:
+            pass
+        try:
+            if enabled:
+                widget.state(["!disabled"])
+            else:
+                widget.state(["disabled"])
+        except Exception:
+            pass
+
+    def _show_loading_window(self):
+        if self._loading_win is None or not self._loading_win.winfo_exists():
+            self._loading_win = tk.Toplevel(self.root)
+            self._loading_win.transient(self.root)
+            self._loading_win.resizable(False, False)
+            self._loading_win.configure(bg=BG)
+            self._loading_win.protocol("WM_DELETE_WINDOW", lambda: None)
+            self._loading_win.title("")
+            self._loading_win.attributes("-topmost", True)
+            tk.Label(
+                self._loading_win,
+                textvariable=self._loading_text,
+                bg=BG,
+                fg=TEXT_DARK,
+                font=("Segoe UI", 10, "bold"),
+                padx=28,
+                pady=18,
+            ).pack()
+
+        self.root.update_idletasks()
+        self._loading_win.update_idletasks()
+        x = self.root.winfo_rootx() + (self.root.winfo_width() - self._loading_win.winfo_reqwidth()) // 2
+        y = self.root.winfo_rooty() + (self.root.winfo_height() - self._loading_win.winfo_reqheight()) // 2
+        self._loading_win.geometry(f"+{max(x, 0)}+{max(y, 0)}")
+        self._loading_win.deiconify()
+        self._loading_win.lift()
+        try:
+            self._loading_win.grab_set()
+        except Exception:
+            pass
+
+    def _hide_loading_window(self):
+        if self._loading_win is not None and self._loading_win.winfo_exists():
+            try:
+                self._loading_win.grab_release()
+            except Exception:
+                pass
+            self._loading_win.destroy()
+        self._loading_win = None
+
+    def _set_loading(self, value: bool, text: str = "Loading..."):
+        self.loading = value
+        for widget in self._controls:
+            self._set_widget_enabled(widget, not value)
+
+        if value:
+            self._loading_text.set(text)
+            self._status_var.set(text)
+            self._show_loading_window()
+            try:
+                self.root.config(cursor="watch")
+            except Exception:
+                pass
+        else:
+            self._hide_loading_window()
+            self._status_var.set(self._status_restore)
+            try:
+                self.root.config(cursor="")
+            except Exception:
+                pass
+
     def _open_file(self):
+        if self.loading:
+            return
         path = filedialog.askopenfilename(
             title="Select video",
             filetypes=[("Video", "*.mp4 *.avi *.mov *.mkv *.wmv *.webm *.m4v"), ("All", "*.*")],
@@ -264,154 +359,177 @@ class VideoPlayer:
         if path:
             self._load_file(path)
 
+    def _cancel_tick(self):
+        if self._tick_job is not None:
+            try:
+                self.root.after_cancel(self._tick_job)
+            except Exception:
+                pass
+            self._tick_job = None
+
     def _load_file(self, path: str):
-        self._stop_playback()
+        self._cancel_tick()
+        self.paused = True
+        self._btn_play.config(text="▶ Play")
+        self.audio.stop()
+
         if self.cap:
             self.cap.release()
+            self.cap = None
 
-        self.cap = cv2.VideoCapture(path)
-        if not self.cap.isOpened():
-            self._status_var.set(f"Error opening: {path}")
+        self._set_loading(True, "Loading video...")
+
+        cap = cv2.VideoCapture(path)
+        if not cap.isOpened():
+            self._status_restore = f"Error opening: {path}"
+            self._set_loading(False)
             return
 
+        self.cap = cap
         self.total_frames = int(self.cap.get(cv2.CAP_PROP_FRAME_COUNT))
         self.native_fps = self.cap.get(cv2.CAP_PROP_FPS) or 30.0
         self.frame_idx = 0
-        self.paused = True
-        self._btn_play.config(text="▶ Play")
+        self.last_orig = None
 
         filename = os.path.basename(path)
         width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.root.title(f"Video Processing Player — {filename}")
-        self._status_var.set(f"{filename} | {width}x{height} | {self.total_frames} frames | {self.native_fps:.2f} fps")
+        self._status_restore = f"{filename} | {width}x{height} | {self.total_frames} frames | {self.native_fps:.2f} fps"
 
-        ok, frame = self.cap.read()
-        if ok:
-            self.frame_idx = 1
-            self.last_orig = frame
-            self.last_hsv = hsv_channels(frame)
-            self._render()
-            self._update_info()
+        self._read_frame_at(0)
 
         self.audio_loaded = False
-        threading.Thread(target=self._load_audio, args=(path,), daemon=True).start()
+        threading.Thread(target=self._load_audio_worker, args=(path,), daemon=True).start()
 
-    def _load_audio(self, path: str):
+    def _load_audio_worker(self, path: str):
         loaded = self.audio.load(path, self.native_fps)
+        self.root.after(0, lambda: self._finish_load_audio(loaded))
+
+    def _finish_load_audio(self, loaded: bool):
         self.audio_loaded = loaded
+        self.audio.set_volume(self._vol_var.get() / 100.0)
+        self._set_loading(False)
 
-        vol = self._vol_var.get() / 100.0
-        self.audio.set_volume(vol)
+    def _read_frame_at(self, index: int):
+        if self.cap is None or self.total_frames <= 0:
+            return False
 
-        if loaded and self.cap is not None and not self.paused:
-            current_frame = self.frame_idx
-            self.root.after(0, lambda: self.audio.play_from(current_frame))
-
-    def _toggle_play(self):
-        if self.cap is None:
-            return
-        self.paused = not self.paused
-        self._btn_play.config(text="⏸ Pause" if not self.paused else "▶ Play")
-        if not self.paused:
-            if self.audio_loaded:
-                self.audio.play_from(self.frame_idx)
-            self._start_playback()
-        else:
-            self.audio.pause()
-
-    def _start_playback(self):
-        self._stop_flag.clear()
-        self._fps_t = time.time()
-        self._fps_n = 0
-        self._play_thread = threading.Thread(target=self._play_loop, daemon=True)
-        self._play_thread.start()
-
-    def _stop_playback(self):
-        self._stop_flag.set()
-        if self._play_thread and self._play_thread.is_alive():
-            self._play_thread.join(timeout=1.0)
-
-    def _play_loop(self):
-        interval = 1.0 / self.native_fps
-        while not self._stop_flag.is_set() and not self.paused:
-            started = time.time()
-            ok, frame = self.cap.read()
-            if not ok:
-                self.cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
-                self.frame_idx = 0
-                if self.audio_loaded:
-                    self.audio.play_from(0)
-                continue
-
-            self.frame_idx = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
-            self.last_orig = frame
-            self.last_hsv = hsv_channels(frame)
-
-            self._fps_n += 1
-            elapsed = time.time() - self._fps_t
-            if elapsed >= 1.0:
-                self._cur_fps = self._fps_n / elapsed
-                self._fps_n = 0
-                self._fps_t = time.time()
-
-            self.root.after(0, self._render)
-            self.root.after(0, self._update_info)
-
-            delay = interval - (time.time() - started)
-            if delay > 0:
-                time.sleep(delay)
-
-    def _seek_to(self, index: int):
-        if self.cap is None:
-            return
         index = max(0, min(index, self.total_frames - 1))
         self.cap.set(cv2.CAP_PROP_POS_FRAMES, index)
         ok, frame = self.cap.read()
-        if ok:
-            self.frame_idx = int(self.cap.get(cv2.CAP_PROP_POS_FRAMES))
-            self.last_orig = frame
-            self.last_hsv = hsv_channels(frame)
-            self._render()
-            self._update_info()
+        if not ok:
+            return False
 
-    def _pause_and_seek(self, index: int):
-        was_playing = not self.paused
-        if was_playing:
-            self._stop_playback()
+        self.frame_idx = index
+        self.last_orig = frame
+        self._render()
+        self._update_info()
+        return True
+
+    def _toggle_play(self):
+        if self.cap is None or self.loading:
+            return
+
+        if self.paused:
+            self.paused = False
+            self._btn_play.config(text="⏸ Pause")
+            self._play_clock_start = time.perf_counter() - (self.frame_idx / self.native_fps)
+            self._fps_t = time.time()
+            self._fps_n = 0
+            if self.audio_loaded:
+                self.audio.play_from(self.frame_idx)
+            self._schedule_tick(0)
+        else:
             self.paused = True
             self._btn_play.config(text="▶ Play")
+            self._cancel_tick()
+            self.audio.pause()
+
+    def _schedule_tick(self, delay_ms: int):
+        self._cancel_tick()
+        self._tick_job = self.root.after(max(1, delay_ms), self._play_tick)
+
+    def _play_tick(self):
+        self._tick_job = None
+        if self.paused or self.cap is None:
+            return
+
+        elapsed = time.perf_counter() - self._play_clock_start
+        target_frame = int(elapsed * self.native_fps)
+
+        if target_frame >= self.total_frames:
+            self._play_clock_start = time.perf_counter()
+            target_frame = 0
+            if self.audio_loaded:
+                self.audio.play_from(0)
+
+        if target_frame != self.frame_idx:
+            self._read_frame_at(target_frame)
+            self._fps_n += 1
+            elapsed_fps = time.time() - self._fps_t
+            if elapsed_fps >= 1.0:
+                self._cur_fps = self._fps_n / elapsed_fps
+                self._fps_n = 0
+                self._fps_t = time.time()
+
+        next_time = (target_frame + 1) / self.native_fps
+        delay_ms = int(max(1.0, (next_time - elapsed) * 1000.0))
+        self._schedule_tick(delay_ms)
+
+    def _seek_to(self, index: int):
+        if self.cap is None or self.loading:
+            return
+        self._read_frame_at(index)
+
+    def _pause_and_seek(self, index: int):
+        if self.loading:
+            return
+        was_playing = not self.paused
+        if was_playing:
+            self.paused = True
+            self._btn_play.config(text="▶ Play")
+            self._cancel_tick()
             self.audio.pause()
         self._seek_to(index)
 
     def _step_back(self):
-        self._pause_and_seek(self.frame_idx - 2)
+        self._pause_and_seek(self.frame_idx - 1)
 
     def _step_forward(self):
-        self._pause_and_seek(self.frame_idx)
+        self._pause_and_seek(self.frame_idx + 1)
 
     def _drag_start(self):
+        if self.loading:
+            return
         self._dragging = True
         if not self.paused:
-            self._stop_playback()
             self.paused = True
             self._btn_play.config(text="▶ Play")
+            self._cancel_tick()
             self.audio.pause()
 
     def _drag_end(self):
+        if self.loading:
+            return
         self._dragging = False
         if self.total_frames > 0:
             percent = self._prog_var.get() / 1000.0
-            self._seek_to(int(percent * self.total_frames))
+            self._seek_to(int(percent * (self.total_frames - 1)))
 
     def _on_progress_move(self, value):
+        if self.loading:
+            return
         if self._dragging and self.total_frames > 0:
-            self._seek_to(int(float(value) / 1000.0 * self.total_frames))
+            self._seek_to(int(float(value) / 1000.0 * (self.total_frames - 1)))
 
     def _on_volume(self, value):
         self.audio.set_volume(float(value) / 100.0)
 
     def _set_mode(self, mode: str):
+        if self.loading:
+            return
+
         previous = self.mode
         self.mode = mode
         self._proc_title.set("" if mode == "hsv" else MODE_LABELS[mode])
@@ -468,7 +586,7 @@ class VideoPlayer:
 
     def _update_info(self):
         if self.total_frames > 0:
-            self._prog_var.set(self.frame_idx / self.total_frames * 1000)
+            self._prog_var.set((self.frame_idx / max(1, self.total_frames - 1)) * 1000)
 
         def format_seconds(seconds):
             minutes, seconds = divmod(int(seconds), 60)
@@ -479,14 +597,16 @@ class VideoPlayer:
         total_frames = str(self.total_frames) if self.total_frames else "?"
 
         self._info_var.set(
-            f"Frame: {self.frame_idx} / {total_frames}   "
+            f"Frame: {self.frame_idx + 1} / {total_frames}   "
             f"{format_seconds(current)} / {format_seconds(total)}   "
             f"{self._cur_fps:.1f} fps   "
             f"Mode: {MODE_LABELS[self.mode]}"
         )
 
     def _on_close(self):
-        self._stop_playback()
+        self.paused = True
+        self._cancel_tick()
+        self._hide_loading_window()
         self.audio.close()
         if self.cap:
             self.cap.release()

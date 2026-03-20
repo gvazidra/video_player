@@ -1,0 +1,10 @@
+[12:33:28] pygame mixer initialized
+[12:33:28] pygame mixer initialized
+[12:33:34] ffmpeg resolved: C:\uni3\video\lab1\task2\video_player_split\dist\VideoPlayer\_internal\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[12:33:36] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpd9_8er78.ogg
+[12:33:37] play from 0.000s
+[12:33:50] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpd9_8er78.ogg'
+[12:33:50] ffmpeg resolved: C:\uni3\video\lab1\task2\video_player_split\dist\VideoPlayer\_internal\imageio_ffmpeg\binaries\ffmpeg-win-x86_64-v7.1.exe
+[12:33:51] temp audio loaded: C:\Users\Lena\AppData\Local\Temp\tmpdx1pizfd.ogg
+[12:33:52] play from 0.000s
+[12:34:01] temp delete failed: [WinError 32] The process cannot access the file because it is being used by another process: 'C:\\Users\\Lena\\AppData\\Local\\Temp\\tmpdx1pizfd.ogg'

@@ -3,9 +3,12 @@ from PIL import Image, ImageTk
 
 
 def bgr_to_photoimage(frame, width, height):
+    h, w = frame.shape[:2]
+    if w != width or h != height:
+        interp = cv2.INTER_AREA if w > width or h > height else cv2.INTER_LINEAR
+        frame = cv2.resize(frame, (width, height), interpolation=interp)
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    return ImageTk.PhotoImage(Image.fromarray(rgb).resize((width, height), Image.LANCZOS))
-
+    return ImageTk.PhotoImage(Image.fromarray(rgb))
 
 def hsv_channels(frame):
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
